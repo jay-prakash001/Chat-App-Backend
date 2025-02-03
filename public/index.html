@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <p id="phone">Your Phone : </p>
+    <button onclick="join()" id="join">Join</button>
+    <button onclick="allChats()" id="getChat">Get Chats</button>
+    <input type="text" id="message" placeholder="message">
+    <input type="text" id="target" placeholder="target Phone">
+
+    <button onclick="submit()">Send</button>
+    <button onclick="chatList()">chatList</button>
+
+    <div id="chat"></div>
+    <div id="chatList"></div>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+        const socket = io()
+        const phone = prompt("phone number")
+        socket.emit('join', phone)
+        const phoneTg = document.getElementById('phone')
+
+        phoneTg.textContent = phoneTg.textContent + phone
+        const chat = document.getElementById('chat')
+        const chatListI = document.getElementById('chatList')
+
+        const destination = document.getElementById('target')
+        const message = document.getElementById('message')
+
+        const joinBtn = document.getElementById('join')
+        const getBtn = document.getElementById('getChat')
+        const submit = () => {
+            const msg = message.value
+            const target  = destination.value
+            console.log('clicked', msg)
+            socket.emit('chat',msg,target, phone)
+
+        }
+
+        const join = () => {
+            socket.emit('join', phone)
+        }
+        const allChats = () => { 
+            const sender = phone
+            const receiver = target.value
+            socket.emit('previousChat', phone ,receiver) 
+        }
+        const chatList = ()=>{
+            const sender = phone
+            socket.emit('chatList', sender)
+        }
+        socket.on('chatList',(data)=>{
+            const item = document.createElement("p")
+            item.textContent = data.chat
+            chatListI.appendChild(item)
+        })
+        socket.on('chat',(data)=>{ 
+            
+            const item = document.createElement("p")
+            item.textContent = data.msg.sender + data.msg.content + data.msg.createdAt
+            chat.appendChild(item)
+        })
+
+    </script>
+</body>
+
+</html>
