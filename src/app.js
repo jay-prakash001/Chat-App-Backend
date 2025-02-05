@@ -12,18 +12,18 @@ const app = express();
 const server = http.createServer(app);
 // const user = new Map()
 const io = new Server(server)
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log('user connected', socket.id)
-
     ws(io, socket)
-    socket.on("disconnect",async()=>{
+    socket.on("disconnect", async () => {
 
-        const userData = await User.findOneAndUpdate({socketId : socket.id},{
+        const userData = await User.findOneAndUpdate({ socketId: socket.id }, {
             // socketId : null,
-            isOnline : false
+            isOnline: false
         })
 
-
+        // console.log(userData)
+        if (!userData) return
         console.log(socket.id)
         const details = {
             name: userData.phone,
@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
             isOnline: false,
             lastSeen: userData.updatedAt,
         }
-        io.emit("getUserInfo",details)
+        io.emit("getUserInfo", details)
         console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         console.log("disconnect", socket.id)
         // console.log(user.socketId)
@@ -42,8 +42,8 @@ io.on('connection', (socket) => {
         console.log(details)
 
 
-    }) 
-}) 
+    })
+})
 
 
 app.use(express.static('./public'));
@@ -59,7 +59,7 @@ app.post('/register', async (req, res) => {
     const user = await User.create({ phone: phone })
     console.log(phone)
     return res.send({ user })
-}) 
+})
 
 
 export default server 

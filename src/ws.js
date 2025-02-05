@@ -3,10 +3,11 @@ import Chat from "./models/chat.model.js"
 import { ApiError } from "./utils/ApiError.js"
 import { verifyToken } from "./utils/verifyToken.js"
 import { receiveMessageOnPort } from "worker_threads"
+import sendNotification from "./utils/notification.js"
 const ws = (io, socket) => {
 
     const sendChatList = async (user) => {
-
+ 
         user.chats.forEach(async (chat) => {
             // console.log("-=--------------------------")
             // console.log(chat)
@@ -74,9 +75,13 @@ const ws = (io, socket) => {
         })
         return name
     }
-    socket.on('join', async (token) => {
+    socket.on('join', async (data) => {
 
-
+        const {token, firebaseNotificationToken} = data
+        console.log(data)
+        console.log(token)
+        console.log(firebaseNotificationToken)
+        
         if(!token) return
         const user_id = await verifyToken(token)
 
@@ -84,17 +89,23 @@ const ws = (io, socket) => {
   
         user.socketId = socket.id
         user.isOnline = true;
+        user.fcmToken = firebaseNotificationToken
         await user.save({ validateBeforeSave: false })
         
         sendChatList(user)
         console.log(socket.id)
         console.log("user Joind ",user.socketId)
+        console.log(firebaseNotificationToken)
+        console.log("=============")
 
+        console.log(user.fcmToken)
+        console.log(user) 
         const details = {
-            name: user.phone, 
+            name: user.phone,  
             user_id: user._id,
             profileImg: user.profileImg,
-            phone: user.phone,
+
+            phone: user.phone, 
             bio: user.bio,
             isOnline: true,
             lastSeen: user.updatedAt,
@@ -125,10 +136,15 @@ const ws = (io, socket) => {
         sendChatList(b)
         sendChatList(a)
      
-
+        
         io.to(user.socketId).emit("chat", { chat: chat, senderBio: user.bio })
         io.to(receiver.socketId).emit("chat", { chat: chat, senderBio: user.bio })
         //         io.to(receiver.socketId).emit('chat', {  msg : chat }) 
+        const senderName = await findContactName(b,a) 
+        console.log(senderName)
+
+        console.log(a, b)
+        await sendNotification(senderName, chat.content,a.profileImg, b.fcmToken)
 
   
     })

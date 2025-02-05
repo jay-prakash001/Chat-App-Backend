@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    
+    fcmToken: {
+        type: String,
+        default: null
+    },
     bio: {
         type: String,
         default: "Hey there I am using Chat app."
