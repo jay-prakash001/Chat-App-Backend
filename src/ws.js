@@ -7,9 +7,9 @@ import sendNotification from "./utils/notification.js"
 const ws = (io, socket) => {
 
     const sendChatList = async (user) => {
- 
+            console.log("sending the chat list")
         user.chats.forEach(async (chat) => {
-            // console.log("-=--------------------------")
+            console.log("-=--------------------------")
             // console.log(chat)
             const u = await User.findById(chat).select("-refreshtoken -socketId -chats -contacts")
             if (u) {
@@ -26,7 +26,7 @@ const ws = (io, socket) => {
                     if(!lastChat) return 
                 // console.log(lastChat)
                 const chatInfo = {
-                    name: name,
+                    name: name, 
                     user_id: u._id,
                     profileImg: u.profileImg,
                     phone: u.phone,
@@ -78,9 +78,7 @@ const ws = (io, socket) => {
     socket.on('join', async (data) => {
 
         const {token, firebaseNotificationToken} = data
-        console.log(data)
-        console.log(token)
-        console.log(firebaseNotificationToken)
+      
         
         if(!token) return
         const user_id = await verifyToken(token)
@@ -93,12 +91,12 @@ const ws = (io, socket) => {
         await user.save({ validateBeforeSave: false })
         
         sendChatList(user)
-        console.log(socket.id)
-        console.log("user Joind ",user.socketId)
-        console.log(firebaseNotificationToken)
+        // console.log(socket.id)
+        // console.log("user Joind ",user.socketId)
+        // console.log(firebaseNotificationToken)
         console.log("=============")
 
-        console.log(user.fcmToken)
+        // console.log(user.fcmToken) 1
         console.log(user) 
         const details = {
             name: user.phone,  
@@ -182,6 +180,14 @@ const ws = (io, socket) => {
 
     })
 
+
+    socket.on("chatList", async(token)=>{
+
+        console.log(token)
+        const user_id = await verifyToken(token)
+        const user  = await User.findById(user_id._id)
+        await sendChatList(user)
+    })
     socket.on("getUserInfo", async(data)=>{
         const {token, userId} = data
         console.log(data)
@@ -192,7 +198,7 @@ const ws = (io, socket) => {
         console.log(userData)
         console.log(userName)
         
-        getUserInfo(userName,userData,user)
+        await getUserInfo(userName,userData,user)
 
         
     })

@@ -13,7 +13,7 @@ const server = http.createServer(app);
 // const user = new Map()
 const io = new Server(server)
 io.on('connection', async (socket) => {
-    console.log('user connected', socket.id)
+    // console.log('user connected', socket.id)
     ws(io, socket)
     socket.on("disconnect", async () => {
 
@@ -22,7 +22,7 @@ io.on('connection', async (socket) => {
             isOnline: false
         })
 
-        // console.log(userData)
+        console.log(userData)
         if (!userData) return
         console.log(socket.id)
         const details = {
@@ -35,11 +35,11 @@ io.on('connection', async (socket) => {
             lastSeen: userData.updatedAt,
         }
         io.emit("getUserInfo", details)
-        console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-        console.log("disconnect", socket.id)
-        // console.log(user.socketId)
-        // console.log(userData)
-        console.log(details)
+        // console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        // console.log("disconnect", socket.id)
+        // // console.log(user.socketId)
+        // // console.log(userData)
+        // console.log(details)
 
 
     })
@@ -54,12 +54,7 @@ app.get('/', (req, res) => {
     res.sendFile('./public/index.html')
 })
 
-app.post('/register', async (req, res) => {
-    const { phone } = req.body
-    const user = await User.create({ phone: phone })
-    console.log(phone)
-    return res.send({ user })
-})
+
 
 
 export default server 

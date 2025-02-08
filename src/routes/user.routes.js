@@ -12,8 +12,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const router = Router()
 
 router.route("/login").post(async (req, res) => {
+    console.log(req.body)
     const { phone } = req.body
-
+    console.log(phone)
     if (!phone) {
         throw new ApiError(401, "phone number is required.")
     }
@@ -36,7 +37,10 @@ router.route("/login").post(async (req, res) => {
     return res.status(200)
     .cookie("accessToken", accessToken,options)
     .cookie("refreshToken", refreshtoken,options) 
-    .json(new ApiResponse(200, { user, accessToken, refreshtoken }, "user logged in successfully"))
+    .json(new ApiResponse(200, { user, accessToken, refreshtoken }, 
+        "user logged in successfully"))
+
+       
 })
 
 router.route("/register").post(upload.single("profileImg"), async (req, res) => {
@@ -49,7 +53,7 @@ router.route("/register").post(upload.single("profileImg"), async (req, res) => 
         throw new ApiError(401, "phone number is required")
     }
 
-    if (!req.file) {
+    if (!req.file) { 
         throw new ApiError(401, "profile image is required")
     }
     let profileImg = await uploadOnCloudinary(req.file.path)
