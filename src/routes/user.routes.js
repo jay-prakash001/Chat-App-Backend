@@ -8,6 +8,8 @@ import uploadOnCloudinary from "../utils/cloudinary.js"
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { generateTokens } from "../utils/generateTokens.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateHeaderValue } from "http";
+import { url } from "inspector";
 
 const router = Router()
 
@@ -35,12 +37,12 @@ router.route("/login").post(async (req, res) => {
 
 
     return res.status(200)
-    .cookie("accessToken", accessToken,options)
-    .cookie("refreshToken", refreshtoken,options) 
-    .json(new ApiResponse(200, { user, accessToken, refreshtoken }, 
-        "user logged in successfully"))
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshtoken, options)
+        .json(new ApiResponse(200, { user, accessToken, refreshtoken },
+            "user logged in successfully"))
 
-       
+
 })
 
 router.route("/register").post(upload.single("profileImg"), async (req, res) => {
@@ -48,12 +50,12 @@ router.route("/register").post(upload.single("profileImg"), async (req, res) => 
     console.log(req.body)
     console.log(req.file)
     const { phone, bio, } = req.body
- 
+
     if (!phone) {
         throw new ApiError(401, "phone number is required")
     }
 
-    if (!req.file) { 
+    if (!req.file) {
         throw new ApiError(401, "profile image is required")
     }
     let profileImg = await uploadOnCloudinary(req.file.path)
@@ -86,6 +88,34 @@ router.route("/register").post(upload.single("profileImg"), async (req, res) => 
         )
 })
 
+router.route("/updateProfileImg").put(verifyJWT, upload.single("profileImg"), async (req, res) => {
+
+    console.log(req.file)
+    console.log(req.user)
+    try {
+
+        if (!req.file) throw new ApiError(404, "file not found")
+        const url = await uploadOnCloudinary(req.file.path)
+        console.log(url)
+
+        if (!url) throw new ApiError(401, "file upload error")
+        const user_id = req.user._id
+        console.log(url.secure_url)
+        if (!user_id) throw new ApiError(400, "token expired")
+        const user = await User.findByIdAndUpdate(user_id._id, { profileImg: url.secure_url }, { new: true })
+
+        console.log(user)
+
+        if (!user) {
+            throw new ApiError(400, "profile updation failed")
+        }
+        return res.status(200).json(new ApiResponse(200, user.profileImg, "profileImg Changed"))
+    } catch (error) {
+        return res.status(400).json(new ApiError(400, error))
+    }
+
+
+})
 
 router.route('/get').get(verifyJWT, (req, res) => {
     console.log(req.user)
